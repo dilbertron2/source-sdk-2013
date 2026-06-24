@@ -14632,7 +14632,7 @@ void CTFPlayer::ForceRespawn( void )
 		// clean up any pipebombs/buildings in the world (no explosions)
 		m_bSwitchedClass = true;
 
-		RemoveAllOwnedEntitiesFromWorld();
+		RemoveAllOwnedEntitiesFromWorld( true );
 
 		int iOldClass = GetPlayerClass()->GetClassIndex();
 
