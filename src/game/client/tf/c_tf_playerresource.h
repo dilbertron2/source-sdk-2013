@@ -83,6 +83,7 @@ protected:
 	int		m_iPlayerClass[MAX_PLAYERS_ARRAY_SAFE];
 	bool	m_bArenaSpectator[MAX_PLAYERS_ARRAY_SAFE];
 	int		m_iActiveDominations[MAX_PLAYERS_ARRAY_SAFE];
+	int		m_iSubclassLoadoutFlags[MAX_PLAYERS_ARRAY_SAFE];
 
 	// These variables are only networked in tournament mode
 	float	m_flNextRespawnTime[MAX_PLAYERS_ARRAY_SAFE];

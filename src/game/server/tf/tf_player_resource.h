@@ -47,6 +47,7 @@ protected:
 	CNetworkArray( int, m_iMaxBuffedHealth, MAX_PLAYERS_ARRAY_SAFE );
 	CNetworkArray( bool, m_bArenaSpectator, MAX_PLAYERS_ARRAY_SAFE );
 	CNetworkArray( int,	m_iActiveDominations, MAX_PLAYERS_ARRAY_SAFE );
+	CNetworkArray( int, m_iSubclassLoadoutFlags, MAX_PLAYERS_ARRAY_SAFE );
 
 	// These variables are only networked in tournament mode
 	CNetworkArray( float,m_flNextRespawnTime, MAX_PLAYERS_ARRAY_SAFE );

@@ -28,6 +28,7 @@ IMPLEMENT_CLIENTCLASS_DT( C_TF_PlayerResource, DT_TFPlayerResource, CTFPlayerRes
 	RecvPropArray3( RECVINFO_ARRAY( m_iPlayerClass ), RecvPropInt( RECVINFO( m_iPlayerClass[0] ) ) ),
 	RecvPropArray3( RECVINFO_ARRAY( m_bArenaSpectator ), RecvPropBool( RECVINFO( m_bArenaSpectator[0] ) ) ),
 	RecvPropArray3( RECVINFO_ARRAY( m_iActiveDominations ), RecvPropInt( RECVINFO( m_iActiveDominations[0] ) ) ),
+	RecvPropArray3( RECVINFO_ARRAY(m_iSubclassLoadoutFlags), RecvPropInt(RECVINFO(m_iSubclassLoadoutFlags[0]))),
 	RecvPropArray3( RECVINFO_ARRAY( m_flNextRespawnTime ), RecvPropTime( RECVINFO( m_flNextRespawnTime[0] ) ) ),
 	RecvPropArray3( RECVINFO_ARRAY( m_iChargeLevel ), RecvPropInt( RECVINFO( m_iChargeLevel[0] ) ) ),
 	RecvPropArray3( RECVINFO_ARRAY( m_iDamage ), RecvPropInt( RECVINFO( m_iDamage[0] ) ) ),

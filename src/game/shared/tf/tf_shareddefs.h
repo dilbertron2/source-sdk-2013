@@ -533,6 +533,17 @@ int GetWeaponFromDamage( const CTakeDamageInfo &info );
 int GetBuildableId( const char *pszBuildableName );
 const char *WeaponIdToAlias( int iWeapon );
 
+
+enum ETFSubclassTypes
+{
+	TF_NO_SUBCLASS = 0,
+	TF_TROLLDIER_SUBCLASS,
+	TF_DEMOKNIGHT_SUBCLASS,
+
+	TF_SUBCLASS_COUNT
+};
+
+
 // Only TF specific classes that derives from CBaseProjectile should OVERRIDE GetBaseProjectileType()
 enum BaseProjectileType_t
 {

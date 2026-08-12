@@ -57,6 +57,7 @@ LINK_ENTITY_TO_CLASS( tf_player_manager, CTFPlayerResource );
 CTFPlayerResource::CTFPlayerResource( void )
 {
 	ListenForGameEvent( "mvm_wave_complete" );
+	ListenForGameEvent( "player_spawn");
 
 	m_flNextDamageAndHealingSend = 0.f;
 
@@ -77,6 +78,29 @@ void CTFPlayerResource::FireGameEvent( IGameEvent * event )
 		// Force a re-send on wave complete
 		m_flNextDamageAndHealingSend = 0.f;
 		UpdatePlayerData();
+	}
+	else if ( !Q_strcmp ( pszEvent, "player_spawn" ) )
+	{
+		const int iPlayerTeam = event->GetInt( "team" );
+		if ( iPlayerTeam == TEAM_UNASSIGNED )
+			return;
+
+		CTFPlayer* pPlayer = ToTFPlayer( UTIL_PlayerByUserId( event->GetInt( "userid" ) ) );
+		if ( !pPlayer )
+			return;
+
+		CUtlVector<int> m_ItemSchemaIDs;
+
+		for (int i = 0; i < MAX_WEAPONS; i++)
+		{
+			CTFWeaponBase *pWpn = (CTFWeaponBase*)pPlayer->GetWeapon( i );
+			if (!pWpn)
+				continue;
+
+			item_definition_index_t iDefIndex = pWpn->GetAttributeContainer()->GetItem()->GetItemDefIndex();
+			m_ItemSchemaIDs.AddToTail( iDefIndex );
+			Msg(UTIL_VarArgs("%d", m_ItemSchemaIDs));
+		}
 	}
 }
 

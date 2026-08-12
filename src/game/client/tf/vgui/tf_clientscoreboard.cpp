@@ -1486,7 +1486,7 @@ void CTFClientScoreBoardDialog::UpdatePlayerList()
 						// for non-local players, show the current class
 						iClass = g_TF_PR->GetPlayerClass( playerIndex );
 					}
-
+					// DO GOOD WORK HERE
 					if ( iClass >= TF_FIRST_NORMAL_CLASS && iClass <= TF_LAST_NORMAL_CLASS )
 					{
 						if ( bAlive )
