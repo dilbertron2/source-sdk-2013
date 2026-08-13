@@ -1899,6 +1899,20 @@ const char *g_pszClassIconsAlt[SCOREBOARD_CLASS_ICONS] =
 	"class_icons/class_icon_orange_engineer_d",
 };
 
+const char* g_pszSubClassIcons[SCOREBOARD_SUBCLASS_ICONS] =
+{
+	"",
+	"../hud/leaderboard_class_soldier_burstfire",	// TF_SUBCLASS_TROLLDIER
+	"../hud/leaderboard_class_demoknight"			// TF_SUBCLASS_DEMOKNIGHT
+};
+
+const char* g_pszSubClassIconsAlt[SCOREBOARD_SUBCLASS_ICONS] =
+{
+	"",
+	"../hud/leaderboard_class_soldier_burstfire",	// TF_SUBCLASS_TROLLDIER
+	"../hud/leaderboard_class_demoknight"			// TF_SUBCLASS_DEMOKNIGHT
+};
+
 const char *g_pszItemClassImagesRed[] =
 {
 	"class_portraits/all_class",	// TF_CLASS_UNDEFINED = 0,

@@ -4665,7 +4665,10 @@ void CTFPlayer::ManageRegularWeapons( TFPlayerClassData_t *pData )
 
 		if ( bItemsChanged )
 		{
-			CTF_GameStats.Event_PlayerLoadoutChanged( this, false );			
+			CTF_GameStats.Event_PlayerLoadoutChanged( this, false );
+			CTFPlayerResource* pResource = dynamic_cast<CTFPlayerResource*>(g_pPlayerResource);
+			if (pResource)
+				pResource->ValidateSubClassLoadout( this );
 		}
 		// We may have added weapons that make others invalid. Recheck.
 		ValidateWeapons( pData, false );

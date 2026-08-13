@@ -137,6 +137,8 @@ private:
 	int							m_iImageDomDead[SCOREBOARD_DOMINATION_ICONS];
 	int							m_iImageClass[SCOREBOARD_CLASS_ICONS];
 	int							m_iImageClassAlt[SCOREBOARD_CLASS_ICONS];
+	int							m_iImageSubClass[SCOREBOARD_SUBCLASS_ICONS];
+	int							m_iImageSubClassAlt[SCOREBOARD_SUBCLASS_ICONS];
 
 	int							m_iImagePing[SCOREBOARD_PING_ICONS];
 	int							m_iImagePingDead[SCOREBOARD_PING_ICONS];

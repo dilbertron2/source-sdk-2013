@@ -206,6 +206,8 @@ CTFClientScoreBoardDialog::CTFClientScoreBoardDialog( IViewPort *pViewPort ) : C
 
 	Q_memset( m_iImageClass, NULL, sizeof( m_iImageClass ) );
 	Q_memset( m_iImageClassAlt, NULL, sizeof( m_iImageClassAlt ) );
+	Q_memset(m_iImageSubClass, NULL, sizeof(m_iImageSubClass));
+	Q_memset(m_iImageSubClassAlt, NULL, sizeof(m_iImageSubClassAlt));
 	Q_memset( m_iImageDom, NULL, sizeof( m_iImageDom ) );
 	Q_memset( m_iImageDomDead, NULL, sizeof( m_iImageDomDead ) );
 	
@@ -340,6 +342,11 @@ void CTFClientScoreBoardDialog::ApplySchemeSettings( vgui::IScheme *pScheme )
 		{
 			m_iImageClass[i] = m_pImageList->AddImage( scheme()->GetImage( g_pszClassIcons[i], true ) );
 			m_iImageClassAlt[i] = m_pImageList->AddImage( scheme()->GetImage( g_pszClassIconsAlt[i], true ) );
+		}
+		for (int i = 1; i < SCOREBOARD_SUBCLASS_ICONS; i++)
+		{
+			m_iImageSubClass[i] = m_pImageList->AddImage(scheme()->GetImage(g_pszSubClassIcons[i], true));
+			m_iImageSubClassAlt[i] = m_pImageList->AddImage(scheme()->GetImage(g_pszSubClassIconsAlt[i], true));
 		}
 		for ( int i = 0; i < SCOREBOARD_PING_ICONS; i++ )
 		{
@@ -1486,12 +1493,18 @@ void CTFClientScoreBoardDialog::UpdatePlayerList()
 						// for non-local players, show the current class
 						iClass = g_TF_PR->GetPlayerClass( playerIndex );
 					}
-					// DO GOOD WORK HERE
+
+					int iSubClass = g_TF_PR->GetPlayerSubClass( playerIndex );
+
 					if ( iClass >= TF_FIRST_NORMAL_CLASS && iClass <= TF_LAST_NORMAL_CLASS )
 					{
 						if ( bAlive )
 						{
 							pKeyValues->SetInt( "class", tf_scoreboard_alt_class_icons.GetBool() ? m_iImageClassAlt[iClass] : m_iImageClass[iClass] );
+							if (iSubClass > TF_SUBCLASS_UNDEFINED && iSubClass < TF_SUBCLASS_COUNT)
+							{
+								pKeyValues->SetInt("class", tf_scoreboard_alt_class_icons.GetBool() ? m_iImageSubClassAlt[iSubClass] : m_iImageSubClass[iSubClass]);
+							}
 						}
 						else
 						{

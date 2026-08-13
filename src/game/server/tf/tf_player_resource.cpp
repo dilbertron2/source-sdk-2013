@@ -25,6 +25,7 @@ IMPLEMENT_SERVERCLASS_ST( CTFPlayerResource, DT_TFPlayerResource )
 	SendPropArray3( SENDINFO_ARRAY3( m_iMaxHealth ), SendPropInt( SENDINFO_ARRAY( m_iMaxHealth ), -1, SPROP_UNSIGNED | SPROP_VARINT ) ),
 	SendPropArray3( SENDINFO_ARRAY3( m_iMaxBuffedHealth ), SendPropInt( SENDINFO_ARRAY( m_iMaxBuffedHealth ), -1, SPROP_UNSIGNED | SPROP_VARINT ) ),
 	SendPropArray3( SENDINFO_ARRAY3( m_iPlayerClass ), SendPropInt( SENDINFO_ARRAY( m_iPlayerClass ), 5, SPROP_UNSIGNED ) ),
+	SendPropArray3( SENDINFO_ARRAY3( m_iSubclassLoadoutFlags ), SendPropInt( SENDINFO_ARRAY( m_iSubclassLoadoutFlags ), 8, SPROP_UNSIGNED ) ),
 	SendPropArray3( SENDINFO_ARRAY3( m_bArenaSpectator ), SendPropBool( SENDINFO_ARRAY( m_bArenaSpectator ) ) ),
 	SendPropArray3( SENDINFO_ARRAY3( m_iActiveDominations ), SendPropInt( SENDINFO_ARRAY( m_iActiveDominations ), 6, SPROP_UNSIGNED ) ),
 	SendPropArray3( SENDINFO_ARRAY3( m_flNextRespawnTime ), SendPropTime( SENDINFO_ARRAY( m_flNextRespawnTime ) ) ),
@@ -79,29 +80,6 @@ void CTFPlayerResource::FireGameEvent( IGameEvent * event )
 		m_flNextDamageAndHealingSend = 0.f;
 		UpdatePlayerData();
 	}
-	else if ( !Q_strcmp ( pszEvent, "player_spawn" ) )
-	{
-		const int iPlayerTeam = event->GetInt( "team" );
-		if ( iPlayerTeam == TEAM_UNASSIGNED )
-			return;
-
-		CTFPlayer* pPlayer = ToTFPlayer( UTIL_PlayerByUserId( event->GetInt( "userid" ) ) );
-		if ( !pPlayer )
-			return;
-
-		CUtlVector<int> m_ItemSchemaIDs;
-
-		for (int i = 0; i < MAX_WEAPONS; i++)
-		{
-			CTFWeaponBase *pWpn = (CTFWeaponBase*)pPlayer->GetWeapon( i );
-			if (!pWpn)
-				continue;
-
-			item_definition_index_t iDefIndex = pWpn->GetAttributeContainer()->GetItem()->GetItemDefIndex();
-			m_ItemSchemaIDs.AddToTail( iDefIndex );
-			Msg(UTIL_VarArgs("%d", m_ItemSchemaIDs));
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -135,6 +113,71 @@ int CTFPlayerResource::GetPartyLeaderIndex( int iTeam )
 		return m_iPartyLeaderBlueTeamIndex;
 
 	return 0;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Check for subclasses and set bitmask
+//-----------------------------------------------------------------------------
+void CTFPlayerResource::ValidateSubClassLoadout(CTFPlayer *pPlayer)
+{
+	const int iPlayerTeam = pPlayer->GetTeamNumber();
+	if (iPlayerTeam == TEAM_UNASSIGNED)
+		return;
+
+
+	bool bHasMarketGardener = false;
+	bool bHasRocketJumper = false;
+
+	bool bHasBoots = false;
+	bool bHasShield = false;
+
+	for (int i = 0; i < MAX_WEAPONS; i++)
+	{
+		CTFWeaponBase* pWpn = (CTFWeaponBase*)pPlayer->GetWeapon(i);
+		if (!pWpn)
+			continue;
+
+		int iWeaponID = pWpn->GetWeaponID();
+
+		if (pPlayer->IsPlayerClass(TF_CLASS_SOLDIER))
+		{
+			if (iWeaponID == TF_WEAPON_ROCKETLAUNCHER)
+			{
+				int iNoSelfBlastDamage = 0;
+				CALL_ATTRIB_HOOK_INT_ON_OTHER(pWpn, iNoSelfBlastDamage, no_self_blast_dmg);
+				if (iNoSelfBlastDamage)
+					bHasRocketJumper = true;
+			}
+			else if (iWeaponID == TF_WEAPON_SHOVEL)
+			{
+				int iCritWhileAirborne = 0;
+				CALL_ATTRIB_HOOK_INT_ON_OTHER(pWpn, iCritWhileAirborne, crit_while_airborne);
+				if (iCritWhileAirborne)
+					bHasMarketGardener = true;
+			}
+		}
+	}
+
+	if (pPlayer->IsPlayerClass(TF_CLASS_DEMOMAN))
+	{
+		// Iterate over all of our wearables
+		for (int i = 0; i < pPlayer->GetNumWearables(); ++i)
+		{
+			CEconWearable* pWearable = pPlayer->GetWearable(i);
+			int iSlot = pWearable->GetAttributeContainer()->GetItem()->GetEquippedPositionForClass(pPlayer->GetPlayerClass()->GetClassIndex());
+			if (iSlot == LOADOUT_POSITION_PRIMARY)
+				bHasBoots = true;
+
+			else if (iSlot == LOADOUT_POSITION_SECONDARY)
+				bHasShield = true;
+		}
+	}
+
+	int nFlags = 0;
+	if (bHasMarketGardener && bHasRocketJumper) nFlags |= TF_SUBCLASS_TROLLDIER;
+	if (bHasBoots && bHasShield)                nFlags |= TF_SUBCLASS_DEMOKNIGHT;
+
+	m_iSubclassLoadoutFlags.Set(pPlayer->entindex(), nFlags);
 }
 
 //-----------------------------------------------------------------------------
@@ -417,6 +460,7 @@ void CTFPlayerResource::Init( int iIndex )
 	m_iMaxHealth.Set( iIndex, TF_HEALTH_UNDEFINED );
 	m_iMaxBuffedHealth.Set( iIndex, TF_HEALTH_UNDEFINED );
 	m_iPlayerClass.Set( iIndex, TF_CLASS_UNDEFINED );
+	m_iSubclassLoadoutFlags.Set( iIndex, TF_SUBCLASS_UNDEFINED);
 	m_iActiveDominations.Set( iIndex, 0 );
 	m_iPlayerClassWhenKilled.Set( iIndex, TF_CLASS_UNDEFINED );
 	m_iConnectionState.Set( iIndex, MM_DISCONNECTED );

@@ -30,6 +30,7 @@ public:
 	int GetMaxHealth( int iIndex )   { return GetArrayValue( iIndex, m_iMaxHealth, TF_HEALTH_UNDEFINED ); }
 	int GetMaxHealthForBuffing( int iIndex )   { return GetArrayValue( iIndex, m_iMaxBuffedHealth, TF_HEALTH_UNDEFINED ); }
 	int GetPlayerClass( int iIndex ) { return GetArrayValue( iIndex, m_iPlayerClass, TF_CLASS_UNDEFINED ); }
+	int GetPlayerSubClass(int iIndex) { return GetArrayValue(iIndex, m_iSubclassLoadoutFlags, TF_SUBCLASS_UNDEFINED); }
 	int	GetActiveDominations( int iIndex ) { return GetArrayValue( iIndex, m_iActiveDominations, 0 ); }
 	float GetNextRespawnTime( int iIndex ) { return (IsConnected(iIndex) ? m_flNextRespawnTime[iIndex] : 0); }
 	int GetChargeLevel( int iIndex ) { return GetArrayValue( iIndex, m_iChargeLevel, 0 ); }

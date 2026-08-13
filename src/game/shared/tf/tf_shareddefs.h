@@ -536,9 +536,9 @@ const char *WeaponIdToAlias( int iWeapon );
 
 enum ETFSubclassTypes
 {
-	TF_NO_SUBCLASS = 0,
-	TF_TROLLDIER_SUBCLASS,
-	TF_DEMOKNIGHT_SUBCLASS,
+	TF_SUBCLASS_UNDEFINED = 0,
+	TF_SUBCLASS_TROLLDIER,
+	TF_SUBCLASS_DEMOKNIGHT,
 
 	TF_SUBCLASS_COUNT
 };
@@ -648,11 +648,16 @@ bool IsPlayingInvasionMap( void );
 
 #define SCOREBOARD_DOMINATION_ICONS		17
 #define SCOREBOARD_CLASS_ICONS			19
+#define SCOREBOARD_SUBCLASS_ICONS		3
 #define SCOREBOARD_PING_ICONS			6
 
 extern const char *g_pszClassIcons[];
 
 extern const char *g_pszClassIconsAlt[];
+
+extern const char *g_pszSubClassIcons[];
+
+extern const char *g_pszSubClassIconsAlt[];
 
 extern const char *g_pszCompetitiveMedalImages[];
 

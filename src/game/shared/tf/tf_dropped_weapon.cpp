@@ -20,6 +20,8 @@
 #include "tf_weapon_medigun.h"
 #include "tf_gamerules.h"
 #include "tf_weapon_bottle.h"
+#include "player_resource.h"
+#include "tf_player_resource.h"
 #endif // GAME_DLL
 
 
@@ -668,6 +670,10 @@ void CTFDroppedWeapon::InitPickedUpWeapon( CTFPlayer *pPlayer, CTFWeaponBase *pW
 			pPlayer->m_Shared.SetItemChargeMeter( eLoadoutPosition, m_flMeter );
 		}
 	}
+
+	CTFPlayerResource *pResource = dynamic_cast<CTFPlayerResource*>( g_pPlayerResource );
+	if ( pResource )
+		pResource->ValidateSubClassLoadout( pPlayer );
 }
 
 //-----------------------------------------------------------------------------
