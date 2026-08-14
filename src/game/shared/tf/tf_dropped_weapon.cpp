@@ -673,7 +673,7 @@ void CTFDroppedWeapon::InitPickedUpWeapon( CTFPlayer *pPlayer, CTFWeaponBase *pW
 
 	CTFPlayerResource *pResource = dynamic_cast<CTFPlayerResource*>( g_pPlayerResource );
 	if ( pResource )
-		pResource->ValidateSubClassLoadout( pPlayer );
+		pResource->CheckSubClassLoadout( pPlayer );
 }
 
 //-----------------------------------------------------------------------------

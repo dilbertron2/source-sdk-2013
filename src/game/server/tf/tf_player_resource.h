@@ -30,7 +30,7 @@ public:
 
 	int	GetTotalScore( int iIndex );
 
-	void ValidateSubClassLoadout( CTFPlayer *pPlayer );
+	void CheckSubClassLoadout( CTFPlayer *pPlayer );
 	void SetPartyLeaderIndex( int iTeam, int iIndex );
 	int GetPartyLeaderIndex( int iTeam );
 	void SetEventTeamStatus( int iValue ) { m_iEventTeamStatus = iValue; }

@@ -78,6 +78,7 @@ void cc_scoreboard_convar_changed( IConVar *pConVar, const char *pOldString, flo
 }
 ConVar tf_scoreboard_ping_as_text( "tf_scoreboard_ping_as_text", "0", FCVAR_ARCHIVE, "Show ping values as text in the scoreboard.", cc_scoreboard_convar_changed );
 ConVar tf_scoreboard_alt_class_icons( "tf_scoreboard_alt_class_icons", "0", FCVAR_ARCHIVE, "Show alternate class icons in the scoreboard." );
+ConVar tf_scoreboard_subclass_icons("tf_scoreboard_subclass_icons", "0", FCVAR_ARCHIVE, "Show class icons for eligible subclasses. (demoknight, huntsman sniper)");
 
 extern bool IsInCommentaryMode( void );
 extern bool DuelMiniGame_GetStats( C_TFPlayer **ppPlayer, uint32 &unMyScore, uint32 &unOpponentScore );
@@ -1501,7 +1502,7 @@ void CTFClientScoreBoardDialog::UpdatePlayerList()
 						if ( bAlive )
 						{
 							pKeyValues->SetInt( "class", tf_scoreboard_alt_class_icons.GetBool() ? m_iImageClassAlt[iClass] : m_iImageClass[iClass] );
-							if (iSubClass > TF_SUBCLASS_UNDEFINED && iSubClass < TF_SUBCLASS_COUNT)
+							if ( tf_scoreboard_subclass_icons.GetBool() && iSubClass > TF_SUBCLASS_NONE && iSubClass < TF_SUBCLASS_COUNT)
 							{
 								pKeyValues->SetInt("class", tf_scoreboard_alt_class_icons.GetBool() ? m_iImageSubClassAlt[iSubClass] : m_iImageSubClass[iSubClass]);
 							}
@@ -1509,6 +1510,10 @@ void CTFClientScoreBoardDialog::UpdatePlayerList()
 						else
 						{
 							pKeyValues->SetInt( "class", tf_scoreboard_alt_class_icons.GetBool() ? m_iImageClassAlt[iClass + 9] : m_iImageClass[iClass + 9] ); // +9 is to jump ahead to the darker dead icons
+							if (tf_scoreboard_subclass_icons.GetBool() && iSubClass > TF_SUBCLASS_NONE && iSubClass < TF_SUBCLASS_COUNT)
+							{
+								pKeyValues->SetInt("class", tf_scoreboard_alt_class_icons.GetBool() ? m_iImageSubClassAlt[iSubClass + 3] : m_iImageSubClass[iSubClass + 3]);
+							}
 						}
 					}
 					else

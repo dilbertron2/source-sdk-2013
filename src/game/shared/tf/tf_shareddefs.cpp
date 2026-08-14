@@ -1902,15 +1902,24 @@ const char *g_pszClassIconsAlt[SCOREBOARD_CLASS_ICONS] =
 const char* g_pszSubClassIcons[SCOREBOARD_SUBCLASS_ICONS] =
 {
 	"",
-	"../hud/leaderboard_class_soldier_burstfire",	// TF_SUBCLASS_TROLLDIER
-	"../hud/leaderboard_class_demoknight"			// TF_SUBCLASS_DEMOKNIGHT
+	"../hud/leaderboard_class_soldier",				// TF_SUBCLASS_TROLLDIER
+	"../hud/leaderboard_class_demoknight",			// TF_SUBCLASS_DEMOKNIGHT
+	"../hud/leaderboard_class_sniper_bow",			// TF_SUBCLASS_BOW_SNIPER
+	"../hud/leaderboard_class_soldier",				// TF_SUBCLASS_TROLLDIER
+	"../hud/leaderboard_class_demoknight",			// TF_SUBCLASS_DEMOKNIGHT
+	"../hud/leaderboard_class_sniper_bow"			// TF_SUBCLASS_BOW_SNIPER
 };
 
 const char* g_pszSubClassIconsAlt[SCOREBOARD_SUBCLASS_ICONS] =
 {
 	"",
-	"../hud/leaderboard_class_soldier_burstfire",	// TF_SUBCLASS_TROLLDIER
-	"../hud/leaderboard_class_demoknight"			// TF_SUBCLASS_DEMOKNIGHT
+	"../hud/leaderboard_class_soldier",				// TF_SUBCLASS_TROLLDIER
+	"../hud/leaderboard_class_demoknight",			// TF_SUBCLASS_DEMOKNIGHT
+	"../hud/leaderboard_class_sniper_bow",			// TF_SUBCLASS_BOW_SNIPER
+	"../hud/leaderboard_class_soldier",				// TF_SUBCLASS_TROLLDIER
+	"../hud/leaderboard_class_demoknight",			// TF_SUBCLASS_DEMOKNIGHT
+	"../hud/leaderboard_class_sniper_bow"			// TF_SUBCLASS_BOW_SNIPER
+
 };
 
 const char *g_pszItemClassImagesRed[] =

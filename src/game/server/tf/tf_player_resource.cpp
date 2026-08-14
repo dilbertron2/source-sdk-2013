@@ -12,6 +12,7 @@
 #include "tf_gamerules.h"
 #include <coordsize.h>
 #include "tf_matchmaking_shared.h"
+#include "tf_wearable_weapons.h"
 
 #include "tf_mann_vs_machine_stats.h"
 #include "player_vs_environment/tf_population_manager.h"
@@ -58,7 +59,6 @@ LINK_ENTITY_TO_CLASS( tf_player_manager, CTFPlayerResource );
 CTFPlayerResource::CTFPlayerResource( void )
 {
 	ListenForGameEvent( "mvm_wave_complete" );
-	ListenForGameEvent( "player_spawn");
 
 	m_flNextDamageAndHealingSend = 0.f;
 
@@ -115,67 +115,89 @@ int CTFPlayerResource::GetPartyLeaderIndex( int iTeam )
 	return 0;
 }
 
+enum ETFSubClassWeapons
+{
+	TF_SUBCLASS_WEAPON_NONE						= 0,
+	TF_SUBCLASS_WEAPON_ROCKETJUMPER				= (1 << 0),
+	TF_SUBCLASS_WEAPON_MARKETGARDENER			= (1 << 1),
+	TF_SUBCLASS_WEAPON_DEMOBOOTS				= (1 << 2),
+	TF_SUBCLASS_WEAPON_DEMOSHIELD				= (1 << 3),
+	TF_SUBCLASS_WEAPON_BOW						= (1 << 4)
+};
+
 //-----------------------------------------------------------------------------
-// Purpose: Check for subclasses and set bitmask
+// Purpose: Check for subclasses and set player resource flag
 //-----------------------------------------------------------------------------
-void CTFPlayerResource::ValidateSubClassLoadout(CTFPlayer *pPlayer)
+void CTFPlayerResource::CheckSubClassLoadout(CTFPlayer *pPlayer)
 {
 	const int iPlayerTeam = pPlayer->GetTeamNumber();
 	if (iPlayerTeam == TEAM_UNASSIGNED)
 		return;
 
+	int nSubclassItemFlags = 0;
 
-	bool bHasMarketGardener = false;
-	bool bHasRocketJumper = false;
+	//if (pPlayer->IsPlayerClass(TF_CLASS_SOLDIER))
+	//{
+	//	for (int i = 0; i < MAX_WEAPONS; i++)
+	//	{
+	//		CTFWeaponBase* pWpn = (CTFWeaponBase*)pPlayer->GetWeapon(i);
+	//		if (!pWpn)
+	//			continue;
 
-	bool bHasBoots = false;
-	bool bHasShield = false;
+	//		int iWeaponID = pWpn->GetWeaponID();
 
-	for (int i = 0; i < MAX_WEAPONS; i++)
+
+	//		if (iWeaponID == TF_WEAPON_ROCKETLAUNCHER)
+	//		{
+	//			// Checking for Rocket Jumper
+	//			int iNoSelfBlastDamage = 0;
+	//			CALL_ATTRIB_HOOK_INT_ON_OTHER(pWpn, iNoSelfBlastDamage, no_self_blast_dmg);
+	//			if (iNoSelfBlastDamage)
+	//				nSubclassItemFlags |= TF_SUBCLASS_WEAPON_ROCKETJUMPER;
+
+	//		}
+	//		else if (iWeaponID == TF_WEAPON_SHOVEL)
+	//		{
+	//			// Checking for Market Gardener
+	//			int iCritWhileAirborne = 0;
+	//			CALL_ATTRIB_HOOK_INT_ON_OTHER(pWpn, iCritWhileAirborne, crit_while_airborne);
+	//			if (iCritWhileAirborne)
+	//				nSubclassItemFlags |= TF_SUBCLASS_WEAPON_MARKETGARDENER;
+	//		}
+	//	}
+	//}
+
+	if (pPlayer->IsPlayerClass(TF_CLASS_DEMOMAN) && pPlayer->m_Shared.HasDemoShieldEquipped())
 	{
-		CTFWeaponBase* pWpn = (CTFWeaponBase*)pPlayer->GetWeapon(i);
-		if (!pWpn)
-			continue;
+		nSubclassItemFlags |= TF_SUBCLASS_WEAPON_DEMOSHIELD;
 
-		int iWeaponID = pWpn->GetWeaponID();
-
-		if (pPlayer->IsPlayerClass(TF_CLASS_SOLDIER))
-		{
-			if (iWeaponID == TF_WEAPON_ROCKETLAUNCHER)
-			{
-				int iNoSelfBlastDamage = 0;
-				CALL_ATTRIB_HOOK_INT_ON_OTHER(pWpn, iNoSelfBlastDamage, no_self_blast_dmg);
-				if (iNoSelfBlastDamage)
-					bHasRocketJumper = true;
-			}
-			else if (iWeaponID == TF_WEAPON_SHOVEL)
-			{
-				int iCritWhileAirborne = 0;
-				CALL_ATTRIB_HOOK_INT_ON_OTHER(pWpn, iCritWhileAirborne, crit_while_airborne);
-				if (iCritWhileAirborne)
-					bHasMarketGardener = true;
-			}
-		}
+		float fSpeedBoostWithShield = 1.0f;
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER(pPlayer, fSpeedBoostWithShield, mult_player_movespeed_shieldrequired);
+		if (fSpeedBoostWithShield > 1.0f)
+			nSubclassItemFlags |= TF_SUBCLASS_WEAPON_DEMOBOOTS;
 	}
 
-	if (pPlayer->IsPlayerClass(TF_CLASS_DEMOMAN))
+	if (pPlayer->IsPlayerClass(TF_CLASS_SNIPER))
 	{
-		// Iterate over all of our wearables
-		for (int i = 0; i < pPlayer->GetNumWearables(); ++i)
+		CTFWeaponBase* pWpn = pPlayer->GetActiveTFWeapon();
+		if (pWpn && (pWpn->GetWeaponID() == TF_WEAPON_COMPOUND_BOW))
 		{
-			CEconWearable* pWearable = pPlayer->GetWearable(i);
-			int iSlot = pWearable->GetAttributeContainer()->GetItem()->GetEquippedPositionForClass(pPlayer->GetPlayerClass()->GetClassIndex());
-			if (iSlot == LOADOUT_POSITION_PRIMARY)
-				bHasBoots = true;
-
-			else if (iSlot == LOADOUT_POSITION_SECONDARY)
-				bHasShield = true;
+			nSubclassItemFlags |= TF_SUBCLASS_WEAPON_BOW;
 		}
 	}
 
 	int nFlags = 0;
-	if (bHasMarketGardener && bHasRocketJumper) nFlags |= TF_SUBCLASS_TROLLDIER;
-	if (bHasBoots && bHasShield)                nFlags |= TF_SUBCLASS_DEMOKNIGHT;
+
+	//if (nSubclassItemFlags & TF_SUBCLASS_WEAPON_ROCKETJUMPER
+	//	&& nSubclassItemFlags & TF_SUBCLASS_WEAPON_MARKETGARDENER)
+	//	nFlags |= TF_SUBCLASS_TROLLDIER;
+
+	if (nSubclassItemFlags & TF_SUBCLASS_WEAPON_DEMOBOOTS
+		&& nSubclassItemFlags & TF_SUBCLASS_WEAPON_DEMOSHIELD)
+		nFlags |= TF_SUBCLASS_DEMOKNIGHT;
+
+	if (nSubclassItemFlags & TF_SUBCLASS_WEAPON_BOW)
+		nFlags |= TF_SUBCLASS_BOW_SNIPER;
 
 	m_iSubclassLoadoutFlags.Set(pPlayer->entindex(), nFlags);
 }
@@ -460,7 +482,7 @@ void CTFPlayerResource::Init( int iIndex )
 	m_iMaxHealth.Set( iIndex, TF_HEALTH_UNDEFINED );
 	m_iMaxBuffedHealth.Set( iIndex, TF_HEALTH_UNDEFINED );
 	m_iPlayerClass.Set( iIndex, TF_CLASS_UNDEFINED );
-	m_iSubclassLoadoutFlags.Set( iIndex, TF_SUBCLASS_UNDEFINED);
+	m_iSubclassLoadoutFlags.Set( iIndex, TF_SUBCLASS_NONE);
 	m_iActiveDominations.Set( iIndex, 0 );
 	m_iPlayerClassWhenKilled.Set( iIndex, TF_CLASS_UNDEFINED );
 	m_iConnectionState.Set( iIndex, MM_DISCONNECTED );
