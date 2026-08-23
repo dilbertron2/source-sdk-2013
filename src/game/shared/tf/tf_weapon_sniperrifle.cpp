@@ -1664,7 +1664,7 @@ bool CSniperDot::ShouldDraw( void )
 	return true;
 }
 
-void CSniperDot::ClientThink( void )
+void CSniperDot::ClientThink(void)
 {
 	C_TFPlayer *pPlayer = ToTFPlayer( GetOwnerEntity() );
 	C_TFPlayer *pViewingPlayer = C_TFPlayer::GetLocalTFPlayer();
