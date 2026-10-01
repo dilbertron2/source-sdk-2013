@@ -1722,16 +1722,9 @@ void CSniperDot::ClientThink( void )
 			matrix3x4_t attachmentToWorld;
 			int iAttachment = pWeapon->LookupAttachment( "muzzle" );
 
-			item_definition_index_t iWeaponDefIndex = pBaseWeapon->GetAttributeContainer()->GetItem()->GetItemDefIndex();
-			bool bUsingAwperHand = ( iWeaponDefIndex && iWeaponDefIndex == 851 );
-
 			if ( !bPlayerIsRobot && pWeapon && iAttachment && pWeapon->GetAttachment( iAttachment, attachmentToWorld ) )
 			{
 				Vector vecLocalOffset( 0, 0, 0 );
-					
-				// We need to hardcode an offset here because the AWPer hand's muzzle attachment is misplaced :(
-				if ( bUsingAwperHand )
-					vecLocalOffset.x = -16.f;
 
 				VectorTransform( vecLocalOffset, attachmentToWorld, vecAttachment );
 				m_laserBeamEffect->SetControlPoint( 1, vecAttachment );
