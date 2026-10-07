@@ -38,6 +38,8 @@ DECLARE_BUILD_FACTORY( CTFPlayerModelPanel );
 
 char g_szSceneTmpName[256];
 
+extern ConVar cl_hide_cosmetics;
+
 static bool IsTauntItem( GameItemDefinition_t *pItemDef, const int iTeam, const int iClass, const char **ppSequence = NULL, const char **ppRequiredItem = NULL, const char **ppScene = NULL )
 {
 	if ( !IsTauntSlot( pItemDef->GetLoadoutSlot( iClass ) ) )
@@ -140,6 +142,8 @@ CTFPlayerModelPanel::CTFPlayerModelPanel( vgui::Panel *pParent, const char *pNam
 	m_bDrawActionSlotEffects = false;
 	m_bDrawTauntParticles = false;
 	m_strPlayerModelOverride = "";
+
+	m_bLastHideCosmetics = cl_hide_cosmetics.GetBool();
 }
 
 //-----------------------------------------------------------------------------
@@ -1023,6 +1027,15 @@ void CTFPlayerModelPanel::EquipItem( CEconItemView *pItem )
 			}
 		}
 	}
+	else
+	{
+		if ( cl_hide_cosmetics.GetBool() )
+		{
+			int iSlot = pItemDef->GetLoadoutSlot( m_iCurrentClassIndex );
+			if ( iSlot == LOADOUT_POSITION_HEAD || iSlot == LOADOUT_POSITION_MISC || iSlot == LOADOUT_POSITION_MISC2 )
+				return;
+		}
+	}
 
 	// Attach the models for the item
 	const char *pszAttached = pItem->GetWorldDisplayModel();
@@ -1258,7 +1271,9 @@ void CTFPlayerModelPanel::UpdatePreviewVisuals()
 		float fSkinOverride = 0.0f;
 		if ( FindAttribute_UnsafeBitwiseCast<attrib_value_t>( pItem, pAttrDef_PlayerSkinOverride, &fSkinOverride ) && fSkinOverride == 1.0f )
 		{
-			C_TFPlayer::AdjustSkinIndexForZombie( m_iCurrentClassIndex, iSkin );
+			if ( !cl_hide_cosmetics.GetBool() )
+				C_TFPlayer::AdjustSkinIndexForZombie( m_iCurrentClassIndex, iSkin );
+
 			break;
 		}
 		Assert( fSkinOverride == 0.0f );
@@ -1356,6 +1371,13 @@ void CTFPlayerModelPanel::PrePaint3D( IMatRenderContext *pRenderContext )
 	if ( g_PlayerPreviewEffect.GetEffect() == C_TFPlayerPreviewEffect::PREVIEW_EFFECT_UBER )
 	{
 		modelrender->ForcedMaterialOverride( *g_PlayerPreviewEffect.GetInvulnMaterialRef() );
+	}
+
+	if ( m_bLastHideCosmetics != cl_hide_cosmetics.GetBool() )
+	{
+		m_bLastHideCosmetics = cl_hide_cosmetics.GetBool();
+		if ( m_pHeldItem )
+			SwitchHeldItemTo( m_pHeldItem );
 	}
 
 	BaseClass::PrePaint3D( pRenderContext );

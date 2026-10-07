@@ -1809,8 +1809,69 @@ bool CEconEntity::ShouldDraw()
 	return BaseClass::ShouldDraw();
 }
 
+static void CosmeticHidingChanged( IConVar *pVar, const char *pOldValue, float flOldValue )
+{
+	if ( !gpGlobals )
+		return;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		C_TFPlayer *pPlayer = ToTFPlayer( UTIL_PlayerByIndex( i ) );
+		if ( !pPlayer )
+			continue;
+
+		pPlayer->SetBodygroupsDirty();
+
+		for ( int j = 0; j < pPlayer->GetNumWearables(); j++ )
+		{
+			CEconWearable *pWearable = pPlayer->GetWearable( j );
+			if ( pWearable )
+			{
+				pWearable->UpdateVisibility();
+				pWearable->UpdateParticleSystems();
+			}
+		}
+	}
+}
+
+ConVar cl_hide_cosmetics("cl_hide_cosmetics", "0", FCVAR_ARCHIVE, "Hides cosmetics on players", CosmeticHidingChanged);
+
+bool CEconEntity::IsHideableCosmetic()
+{
+	CTFWearable *pWearable = dynamic_cast<CTFWearable*>( this );
+	if ( !pWearable )
+		return false;
+
+	CEconItemView *pItem = GetAttributeContainer()->GetItem();
+	if ( !pItem || !pItem->IsValid() )
+		return false;
+
+	// Always show MvM GateBot lights
+	item_definition_index_t iDefIndex = pItem->GetItemDefIndex();
+	if ( iDefIndex >= 1057 && iDefIndex <= 1065 )
+		return false;
+
+	int iClass = 0;
+	C_TFPlayer *pOwner = ToTFPlayer( GetOwnerEntity() );
+	if ( pOwner )
+	{
+		if ( pWearable->IsDisguiseWearable() )
+			iClass = pOwner->m_Shared.GetDisguiseClass();
+		else
+			iClass = pOwner->GetPlayerClass()->GetClassIndex();
+	}
+
+	int iSlot = pItem->GetStaticData()->GetLoadoutSlot(iClass);
+	return iSlot == LOADOUT_POSITION_HEAD
+		|| iSlot == LOADOUT_POSITION_MISC
+		|| iSlot == LOADOUT_POSITION_MISC2;
+}
+
 bool CEconEntity::ShouldHideForVisionFilterFlags( void )
 {
+	if ( cl_hide_cosmetics.GetBool() && IsHideableCosmetic() )
+		return true;
+
 	CEconItemView *pItem = GetAttributeContainer()->GetItem();
 	if ( pItem && pItem->IsValid() )
 	{
