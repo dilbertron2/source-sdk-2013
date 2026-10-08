@@ -1834,7 +1834,7 @@ static void CosmeticHidingChanged( IConVar *pVar, const char *pOldValue, float f
 	}
 }
 
-ConVar cl_hide_cosmetics("cl_hide_cosmetics", "0", FCVAR_ARCHIVE, "Hides cosmetics on players", CosmeticHidingChanged);
+ConVar cl_hide_cosmetics("cl_hide_cosmetics", "0", FCVAR_ARCHIVE, "Set to 1 to hide cosmetics on all players, and 2 to hide cosmetics on all players except the local player.", CosmeticHidingChanged);
 
 bool CEconEntity::IsHideableCosmetic()
 {
@@ -1855,6 +1855,9 @@ bool CEconEntity::IsHideableCosmetic()
 	C_TFPlayer *pOwner = ToTFPlayer( GetOwnerEntity() );
 	if ( pOwner )
 	{
+		if ( cl_hide_cosmetics.GetInt() >= 2 && pOwner->IsLocalPlayer() )
+			return false;
+
 		if ( pWearable->IsDisguiseWearable() )
 			iClass = pOwner->m_Shared.GetDisguiseClass();
 		else
@@ -1869,7 +1872,7 @@ bool CEconEntity::IsHideableCosmetic()
 
 bool CEconEntity::ShouldHideForVisionFilterFlags( void )
 {
-	if ( cl_hide_cosmetics.GetBool() && IsHideableCosmetic() )
+	if ( cl_hide_cosmetics.GetInt() >= 1 && IsHideableCosmetic() )
 		return true;
 
 	CEconItemView *pItem = GetAttributeContainer()->GetItem();

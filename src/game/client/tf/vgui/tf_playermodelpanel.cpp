@@ -13,6 +13,7 @@
 #include "vgui/IVGui.h"
 #include "game_item_schema.h"
 #include "econ_item_system.h"
+#include "econ_entity.h"
 #include "animation.h"
 #include "choreoscene.h"
 #include "choreoevent.h"
@@ -143,7 +144,8 @@ CTFPlayerModelPanel::CTFPlayerModelPanel( vgui::Panel *pParent, const char *pNam
 	m_bDrawTauntParticles = false;
 	m_strPlayerModelOverride = "";
 
-	m_bLastHideCosmetics = cl_hide_cosmetics.GetBool();
+	m_bIsLocalPlayerModel = false;
+	m_iLastHideCosmetics = cl_hide_cosmetics.GetInt();
 }
 
 //-----------------------------------------------------------------------------
@@ -1029,11 +1031,18 @@ void CTFPlayerModelPanel::EquipItem( CEconItemView *pItem )
 	}
 	else
 	{
-		if ( cl_hide_cosmetics.GetBool() )
+		int nMode = cl_hide_cosmetics.GetInt();
+		if ( nMode == 1 || ( nMode >= 2 && !m_bIsLocalPlayerModel ) )
 		{
-			int iSlot = pItemDef->GetLoadoutSlot( m_iCurrentClassIndex );
-			if ( iSlot == LOADOUT_POSITION_HEAD || iSlot == LOADOUT_POSITION_MISC || iSlot == LOADOUT_POSITION_MISC2 )
-				return;
+			item_definition_index_t iDefIndex = pItemDef->GetDefinitionIndex();
+
+			// Always show MvM GateBot lights
+			if ( !( iDefIndex >= 1057 && iDefIndex <= 1065 ) )
+			{
+				int iSlot = pItemDef->GetLoadoutSlot(m_iCurrentClassIndex);
+				if (iSlot == LOADOUT_POSITION_HEAD || iSlot == LOADOUT_POSITION_MISC || iSlot == LOADOUT_POSITION_MISC2)
+					return;
+			}
 		}
 	}
 
@@ -1271,7 +1280,7 @@ void CTFPlayerModelPanel::UpdatePreviewVisuals()
 		float fSkinOverride = 0.0f;
 		if ( FindAttribute_UnsafeBitwiseCast<attrib_value_t>( pItem, pAttrDef_PlayerSkinOverride, &fSkinOverride ) && fSkinOverride == 1.0f )
 		{
-			if ( !cl_hide_cosmetics.GetBool() )
+			if ( cl_hide_cosmetics.GetInt() <= 0 || ( cl_hide_cosmetics.GetInt() >= 2 && m_bIsLocalPlayerModel) )
 				C_TFPlayer::AdjustSkinIndexForZombie( m_iCurrentClassIndex, iSkin );
 
 			break;
@@ -1373,11 +1382,14 @@ void CTFPlayerModelPanel::PrePaint3D( IMatRenderContext *pRenderContext )
 		modelrender->ForcedMaterialOverride( *g_PlayerPreviewEffect.GetInvulnMaterialRef() );
 	}
 
-	if ( m_bLastHideCosmetics != cl_hide_cosmetics.GetBool() )
+	if ( m_iLastHideCosmetics != cl_hide_cosmetics.GetInt() )
 	{
-		m_bLastHideCosmetics = cl_hide_cosmetics.GetBool();
+		m_iLastHideCosmetics = cl_hide_cosmetics.GetInt();
 		if ( m_pHeldItem )
-			SwitchHeldItemTo( m_pHeldItem );
+		{
+			const bool bHadOverride = !m_strPlayerModelOverride.IsEmpty();
+			SwitchHeldItemTo( m_pHeldItem, bHadOverride );
+		}
 	}
 
 	BaseClass::PrePaint3D( pRenderContext );

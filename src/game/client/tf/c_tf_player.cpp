@@ -7543,7 +7543,7 @@ extern ConVar cl_hide_cosmetics;
 //-----------------------------------------------------------------------------
 void C_TFPlayer::DropWearable( C_TFWearable *pItem, const breakablepropparams_t &params )
 {
-	if ( cl_hide_cosmetics.GetBool() && pItem->IsHideableCosmetic() )
+	if ( cl_hide_cosmetics.GetInt() >= 1 && pItem->IsHideableCosmetic() )
 		return;
 
 	// Get the position from the rootbone of the wearable entity itself
@@ -7759,7 +7759,7 @@ bool C_TFPlayer::BRenderAsZombie( bool bWeaponsCheck /*= false */  )
 	if ( !IsLocalPlayerUsingVisionFilterFlags( TF_VISION_FILTER_HALLOWEEN, bWeaponsCheck ) )
 		return false;
 
-	if ( cl_hide_cosmetics.GetBool() )
+	if ( cl_hide_cosmetics.GetInt() == 1 || ( cl_hide_cosmetics.GetInt() >= 2 && !IsLocalPlayer() ) )
 		return false;
 
 	// Should we render as somebody else?
@@ -10188,7 +10188,7 @@ void C_TFPlayer::CreateBoneAttachmentsFromWearables( C_TFRagdoll *pRagdoll, bool
 		if ( !pItem )
 			continue;
 
-		if ( cl_hide_cosmetics.GetBool() && pItem->IsHideableCosmetic() )
+		if ( cl_hide_cosmetics.GetInt() >= 1 && pItem->IsHideableCosmetic() )
 			continue;
 
 		if ( pItem->IsViewModelWearable() )

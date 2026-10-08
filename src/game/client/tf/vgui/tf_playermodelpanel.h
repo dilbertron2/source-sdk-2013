@@ -29,6 +29,7 @@ public:
 	void	ApplySettings( KeyValues *inResourceData );
 
 	void	SetToPlayerClass( int iClass, bool bForceRefresh = false, const char *pszPlayerModelOverride = NULL, bool bOverrideUsesClassAnimations = false );
+	void	SetIsLocalPlayerModel( bool bLocal ) { m_bIsLocalPlayerModel = bLocal; }
 	bool	HoldItemInSlot( int iSlot, bool bPreserveModelOverride = false );
 	bool	HoldItem( int iItemNumber );
 	void	SwitchHeldItemTo( CEconItemView *pItem, bool bPreserveModelOverride = false );
@@ -218,7 +219,8 @@ private:
 	MDLData_t				m_StatTrackModel;
 	float					m_flStatTrackScale;
 
-	bool					m_bLastHideCosmetics;
+	bool				m_bIsLocalPlayerModel;
+	int					m_iLastHideCosmetics;
 };
 
 #endif // TF_PLAYERMODELPANEL_H
