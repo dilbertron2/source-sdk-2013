@@ -1598,6 +1598,13 @@ void CEconItemDescription::Generate_ItemDesc( const CLocalizationProvider *pLoca
 	if ( !pItemDef )
 		return;
 
+	locchar_t wszLine[128];
+	loc_sprintf_safe(wszLine, LOCCHAR("Def Index: %d"),
+		pItemDef->GetDefinitionIndex());
+
+	AddDescLine(wszLine, ATTRIB_COL_LEVEL, kDescLineFlag_Desc);
+	AddEmptyDescLine();
+
 	// Add any additional item description
 	if ( pItemDef->GetItemDesc() )
 	{

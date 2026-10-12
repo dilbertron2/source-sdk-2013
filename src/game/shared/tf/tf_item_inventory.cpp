@@ -1542,6 +1542,7 @@ bool CTFPlayerInventory::CanPurchaseItems( int iItemCount ) const
 //-----------------------------------------------------------------------------
 int	CTFPlayerInventory::GetMaxItemCount( void ) const
 {
+	return GetItemSchema()->GetItemDefinitionMap().Count() + 2000;
 	int iMaxItems = DEFAULT_NUM_BACKPACK_SLOTS;
 	CEconGameAccountClient *pGameAccountClient = GetSOCacheGameAccountClient( m_pSOCache );
 	if ( pGameAccountClient )
@@ -1778,12 +1779,94 @@ void CTFPlayerInventory::PostSOUpdate( const CSteamID & steamIDOwner, GCSDK::ESO
 	VerifyChangedLoadoutsAreValid();
 }
 
+void CTFPlayerInventory::MOD_AddAllSchemaItems()
+{
+	if (!m_pSOCache || !steamapicontext || !steamapicontext->SteamUser())
+		return;
+
+	// Only the local player's inventory.
+	if (GetOwner() != steamapicontext->SteamUser()->GetSteamID())
+		return;
+
+	CGCClientSharedObjectTypeCache* pTypeCache = m_pSOCache->FindTypeCache(CEconItem::k_nTypeID);
+	if (!pTypeCache)
+		pTypeCache = m_pSOCache->CreateTypeCache(CEconItem::k_nTypeID);
+	if (!pTypeCache)
+		return;
+
+	// Start after the highest backpack slot used by real items.
+	uint32 unNextSlot = 1;
+	FOR_EACH_VEC(m_aInventoryItems, i)
+	{
+		uint32 unPos = TFInventoryManager()->GetBackpackPositionFromBackend(m_aInventoryItems[i].GetInventoryPosition());
+		unNextSlot = MAX(unNextSlot, unPos + 1);
+	}
+
+	const uint32 unAccountID = GetOwner().GetAccountID();
+	const CEconItemSchema::ItemDefinitionMap_t& mapDefs = GetItemSchema()->GetItemDefinitionMap();
+
+	FOR_EACH_MAP_FAST(mapDefs, i)
+	{
+		CEconItemDefinition* pDef = mapDefs[i];
+		if (!pDef || pDef->IsBundle() || pDef->IsBaseItem() || pDef->IsHidden())
+			continue;
+
+		const item_definition_index_t unDefIndex = pDef->GetDefinitionIndex();
+		if (unDefIndex == PREVIEW_ITEM_DEFINITION_INDEX)
+			continue;
+
+		const itemid_t ulItemID = (1ull << 62) | (itemid_t)unDefIndex;
+
+		// Already present (e.g. reloaded SO cache)? Skip.
+		if (GetInventoryItemByItemID(ulItemID))
+			continue;
+
+		uint32 unToken = 0;
+		SetBackpackPosition(&unToken, unNextSlot++);
+		unToken |= kBackendPosition_NewFormat;
+
+		CEconItem item;   // temporary, used only for serialization
+		item.SetItemID(ulItemID);
+		item.SetDefinitionIndex(unDefIndex);
+		item.SetItemLevel(pDef->RollItemLevel());
+		item.SetQuality(pDef->GetQuality() != k_unItemQuality_Any ? pDef->GetQuality() : AE_UNIQUE);
+		item.SetInventoryToken(unToken);
+		item.SetAccountID(unAccountID);
+
+		CSOEconItem msgItem;
+		item.SerializeToProtoBufItem(msgItem);
+
+		std::string sData;
+		if (!msgItem.SerializeToString(&sData))
+			continue;
+
+		if (!m_pSOCache->BCreateFromMsg(CEconItem::k_nTypeID, sData.data(), (uint32)sData.size()))
+			continue;
+
+		// BCreateFromMsg may or may not have fired SOCreated into this inventory,
+		// depending on the cache's subscription state. Add manually if it didn't.
+		if (!GetInventoryItemByItemID(ulItemID))
+		{
+			CEconItem* pSOItem = GetSOCDataForItem(ulItemID);
+			if (pSOItem)
+			{
+				AddEconItem(pSOItem, false, false, false);
+			}
+		}
+	}
+
+	ResortInventory();
+	DirtyItemHandles();
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
 void CTFPlayerInventory::SOCacheSubscribed( const CSteamID & steamIDOwner, GCSDK::ESOCacheEvent eEvent )
 {
 	BaseClass::SOCacheSubscribed( steamIDOwner, eEvent );
+
+	MOD_AddAllSchemaItems();
 
 	UpdateRealTFLoadoutItems();
 	LoadLocalLoadout();

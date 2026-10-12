@@ -77,6 +77,7 @@ public:
 	void				SaveLocalLoadout( bool bReset=false, bool bDefaultToGC=false );
 	bool				EquipLocalPreset(equipped_class_t unClass, equipped_preset_t unPreset);
 	int					GetActiveLocalPreset(equipped_class_t unClass) { return m_ActivePreset[unClass]; }
+	void				MOD_AddAllSchemaItems();
 
 #endif
 	void				EquipLocal(uint64 ulItemID, equipped_class_t unClass, equipped_slot_t unSlot);
